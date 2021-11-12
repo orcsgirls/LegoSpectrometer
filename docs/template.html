@@ -1,0 +1,38 @@
+<html>
+<head>
+  <title>Lego Spectrometer Log Book</title>
+  <link href="docs/styles/spectrometer.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>    
+    <div class="logpage">
+        <h2>Lego Spectrometer</h2>
+        <img src="docs/images/logo.png" width="100" align="right">
+        <h3>Measurement taken on %%measurementTaken%%</h3>
+        
+        Scientist: <strong>%%scientistName%%</strong><br>
+        <hr>
+        Light source: <strong>%%lightSource%%</strong><br>
+        Transmission sample: <strong>%%transmissionSample%%</strong><br>
+        Exposure: <strong>%%shutter%% &micro;sec</strong><br>
+        <hr>
+        <h3>Experiment notes</h3>
+        %%experimentNotes%%
+
+        <h2>Images</h2>
+        <div class="imagefields">
+            <h3>Raw image</h3>
+            <img src="docs/images/raw-%%measurementTaken%%.jpg">
+
+            <h3>Processed image</h3>
+            <img src="docs/images/processed-%%measurementTaken%%.jpg">
+
+            <h3>Spectrum</h3>
+            <img src="docs/images/spectrum-%%measurementTaken%%.jpg">
+        </div>
+
+        <h2>Data</h2>
+        <h3>Download data - <a href="docs/data/spectrum-%%measurementTaken%%.csv" download>spectrum-%%measurementTaken%%.csv</a></h3>
+    </div>
+</body>
+</html>

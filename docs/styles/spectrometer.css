@@ -1,0 +1,85 @@
+
+
+
+.logpage {
+   	font-family: Arial, Helvetica, sans-serif;
+	font-size: 100%;
+   	background-color: #FFFFFF;
+   	color: #000000;
+	margin: 5px;
+   	padding: 5px;
+}
+
+.logpage table {
+    width: 100%;
+   	padding: 5px;
+}
+
+.logpage a:link a:visited a:active {
+    color: #222222;
+    text-decoration: underline;
+}
+
+.logpage a:hover {
+    color: #777777;
+    text-decoration: underline;
+}
+
+.logpage hr {
+	margin: 5px;
+    color: #DDDDDD;
+}
+
+.logpage tr, td, th {
+	padding: 5px;
+	margin: 5px;
+	vertical-align: top;
+	border: 1px solid #999;
+	background-color: #EEEEEE;
+	font-size: 100%;
+}
+
+.logpage th {
+	height: 5%;
+}
+
+.logpage h1 {
+	font-size: 150%;
+	text-align: center;
+    padding: 8px;
+}
+
+.logpage h2 {
+	font-size: 125%;
+	text-align: center;
+	color: #FFFFFF;
+	background-color: #777777;
+    padding: 8px;
+}
+
+.logpage h3 {
+	font-size: 110%;
+	text-align: left;
+	color: #000055;
+    padding-bottom: 10px;
+}
+
+.imagefields
+{
+    text-align:center;
+    display:block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+}
+
+.logpage button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
