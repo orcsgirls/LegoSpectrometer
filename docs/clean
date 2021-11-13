@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo "Cleaning files"
+
+cd data
+git rm spectrum*.csv
+rm -f spectrum*.csv
+
+cd ../images
+git rm raw*.jpg processed*.jpg spectrum*.jpg
+rm -f raw*.jpg processed*.jpg spectrum*.jpg
+
+cd ..
+git rm experiment*.html
+rm -f experiment*.html
+
+echo "Remember to clean up docs/index.html .."
