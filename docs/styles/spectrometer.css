@@ -18,7 +18,7 @@
 }
 
 .logpage hr {
-	color: #DDDDDD;
+	border: 1px solid #4CAF50;
 }
 
 .logpage table {
@@ -36,6 +36,9 @@
 
 .logpage th {
 	height: 5%;
+	font-weight: normal;
+	color: #000000;
+	background-color: #E0E0E0;
 }
 
 .logpage h1 {
@@ -48,7 +51,7 @@
 	font-size: 125%;
 	text-align: center;
 	color: #FFFFFF;
-	background-color: #777777;
+	background-color: #4CAF50;
 	padding: 8px;
 }
 
@@ -94,12 +97,9 @@
 }
 
 #searchInput {
-  background-image: url('/images/searchicon.png');
-  background-position: 10px 10px;
-  background-repeat: no-repeat;
   width: 100%;
   font-size: 16px;
-  padding: 12px 20px 12px 40px;
+  padding: 12px;
   border: 1px solid #ddd;
   margin-bottom: 12px;
   margin-top: 12px;
