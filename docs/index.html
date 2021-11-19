@@ -7,10 +7,11 @@
 
 <body>    
     <div class="logpage">
-        <table>
-        <tr><td><h2>Lego Spectrometer</h2>
-	Welcome to the Log book of my Lego Spectrometer. Checkout all the cool spectra below :)
-	</td></tr>
+        <table id="summaryTable">
+        <tr><th><h2>Lego Spectrometer</h2>
+		Welcome to the Log book of my Lego Spectrometer. Checkout all the cool spectra below :)
+		<input type="text" id="searchInput" onkeyup="myFunction()" placeholder="Search for spectra ..">
+		</th></tr>
 
         <!--%%entry%%-->
         <tr><td><img src="images/processed-20211118-150048.jpg" align="right">
@@ -72,5 +73,26 @@
 
         </table>
     </div>
+	
+	<script>
+	function myFunction() {
+	  var input, filter, table, tr, td, i, txtValue;
+	  input = document.getElementById("searchInput");
+	  filter = input.value.toUpperCase();
+	  table = document.getElementById("summaryTable");
+	  tr = table.getElementsByTagName("tr");
+	  for (i = 0; i < tr.length; i++) {
+		td = tr[i].getElementsByTagName("td")[0];
+		if (td) {
+		  txtValue = td.textContent || td.innerText;
+		  if (txtValue.toUpperCase().indexOf(filter) > -1) {
+			tr[i].style.display = "";
+		  } else {
+			tr[i].style.display = "none";
+		  }
+		}       
+	  }
+	}
+	</script>
 </body>
 </html>

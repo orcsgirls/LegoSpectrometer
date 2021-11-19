@@ -31,6 +31,7 @@
 	vertical-align: top;
 	border: 1px solid #999;
 	background-color: #EEEEEE;
+	text-align: left;
 }
 
 .logpage th {
@@ -90,4 +91,16 @@
 	text-decoration: none;
 	display: inline-block;
 	font-size: 16px;
+}
+
+#searchInput {
+  background-image: url('/images/searchicon.png');
+  background-position: 10px 10px;
+  background-repeat: no-repeat;
+  width: 100%;
+  font-size: 16px;
+  padding: 12px 20px 12px 40px;
+  border: 1px solid #ddd;
+  margin-bottom: 12px;
+  margin-top: 12px;
 }
