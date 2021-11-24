@@ -39,6 +39,7 @@ class Spectrometer():
     
     # Other
     scaleFactor = 1
+    splash = Image.open('docs/images/specBackground.png')
     
     # Measurement TAB -----------------------------------------------------------------
     m_head1  = widgets.HTML(value="<h4>Experiment</h4>")
@@ -204,8 +205,7 @@ class Spectrometer():
             plt.close()
 
         self.p_status.value = "Updating LCD .."
-        if (self.lcd):
-            self.disp.display(self.processed.resize((self.disp.width, self.disp.height)))
+        self.setLCD(self.processed)
 
         self.p_status.value = "Saving results .."
         self.raw.save("docs/images/raw-"+self.m_time.value+".jpg")
@@ -351,7 +351,13 @@ class Spectrometer():
 
         self.disp = ST7735.ST7735(port=0,cs=1,dc=9,backlight=12,rotation=270,spi_speed_hz=10000000)
         self.disp.begin()
-        
+        self.setLCD(self.splash)
+
+    #----------------------------------------------------------------------------------
+    def setLCD(self, img):
+        if (self.lcd):
+            self.disp.display(img.resize((self.disp.width, self.disp.height)))
+
     #----------------------------------------------------------------------------------
     def setCrop(self,crop):
         for i, c in enumerate(crop):
@@ -365,8 +371,8 @@ class Spectrometer():
             
     #----------------------------------------------------------------------------------
     def show(self):
-        self.updateWeblog()
         display(self.gui)
+        self.updateWeblog()
         
     #----------------------------------------------------------------------------------
     def __init__(self, lcd, neopixel):
