@@ -11,11 +11,11 @@
         <table id="summaryTable">
         <tr><th><h2>Lego Spectrometer</h2>
 		Welcome to the Log book of my Lego Spectrometer. Checkout all the cool spectra below :)
-		<input type="text" id="searchInput" onkeyup="myFunction()" placeholder="🔎 Search for spectra ..">
+            <input type="text" id="searchInput" onkeyup="filterRows();" placeholder="🔎 Search for spectra ..">
+            <button class="btn bth-primary" onClick="location.reload();">Reload</button>
 		</th></tr>
 
         <!--%%entry%%-->
-        
         <tr><td><img src="images/processed-20211119-101823.jpg" align="right">
             Scientist: <strong>Thomas P</strong><br>
             Light source: <strong>NeoPixel (255,255,255) - white</strong><br>
@@ -91,7 +91,7 @@
     </div>
 	
 	<script>
-	function myFunction() {
+	function filterRows() {
 	  var input, filter, table, tr, td, i, txtValue;
 	  input = document.getElementById("searchInput");
 	  filter = input.value.toUpperCase();
