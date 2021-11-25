@@ -40,6 +40,7 @@ class Spectrometer():
     # Other
     scaleFactor = 1
     splash = Image.open('docs/images/specBackground.png')
+    mask   = Image.open('docs/images/mask.png')
     
     # Measurement TAB -----------------------------------------------------------------
     m_head1  = widgets.HTML(value="<h4>Experiment</h4>")
@@ -121,6 +122,8 @@ class Spectrometer():
     #----------------------------------------------------------------------------------
     def runMeasure(self,b):       
         self.m_butraw.disabled = True
+        self.setLCD(self.splash)
+        
         self.m_time.value = strftime("%Y%m%d-%H%M%S") 
         shutter = int(1000000 * float(self.m_expo.value))
 
@@ -172,6 +175,13 @@ class Spectrometer():
             display(ax.figure)
             plt.close()
 
+        self.p_status.value = "Cropping .."
+        cropvals = [int(v.value) for v in self.p_crop]
+        self.processed = self.raw.crop(cropvals)
+
+        self.p_status.value = "Updating LCD .."
+        self.setLCD(self.processed)
+
         self.p_status.value = "Updated .."
         self.p_butupd.disabled = False
         self.p_butpro.disabled = False
@@ -180,10 +190,6 @@ class Spectrometer():
     def runProcess(self,b):
         self.p_butupd.disabled = True
         self.p_butpro.disabled = True
-        self.p_status.value = "Cropping .."
-
-        cropvals = [int(v.value) for v in self.p_crop]
-        self.processed = self.raw.crop(cropvals)
 
         self.p_status.value = "Scaling .."
         self.processed = self.adjustBrightness(self.processed)
@@ -203,9 +209,6 @@ class Spectrometer():
             display(ax.figure)
             plt.savefig("docs/images/spectrum-"+self.m_time.value+".jpg")
             plt.close()
-
-        self.p_status.value = "Updating LCD .."
-        self.setLCD(self.processed)
 
         self.p_status.value = "Saving results .."
         self.raw.save("docs/images/raw-"+self.m_time.value+".jpg")
@@ -356,7 +359,9 @@ class Spectrometer():
     #----------------------------------------------------------------------------------
     def setLCD(self, img):
         if (self.lcd):
-            self.disp.display(img.resize((self.disp.width, self.disp.height)))
+            lcd=img.resize((self.disp.width, self.disp.height))
+            lcd.paste(self.mask, (0,0), self.mask)
+            self.disp.display(lcd)
 
     #----------------------------------------------------------------------------------
     def setCrop(self,crop):
