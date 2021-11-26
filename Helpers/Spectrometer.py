@@ -44,7 +44,7 @@ class Spectrometer():
     
     # Measurement TAB -----------------------------------------------------------------
     m_head1  = widgets.HTML(value="<h4>Experiment</h4>")
-    m_name   = widgets.Text(value='', description='Scientist:', disabled=False)
+    m_name   = widgets.Text(value='', description='Scientist:', disabled=False, layout=widgets.Layout(width='auto'))
     m_light  = widgets.Text(value='', placeholder='Light source details', description='Light:', disabled=False)
     m_sample = widgets.Text(value='None', placeholder='Transmission sample details', description='Sample:', disabled=False)
     m_notes  = widgets.Textarea(value='', placeholder='Experiment notes', description='Notes:', rows=6, disabled=False)
@@ -56,7 +56,7 @@ class Spectrometer():
                                  readout_format='.1f')
 
     m_neopix = widgets.ColorPicker(concise=False, description='NeoPixel', value='#000000', disabled=True)
-    m_butraw = widgets.Button(button_style='success', description='Measure', 
+    m_butraw = widgets.Button(button_style='success', description='Measure', disabled=False,
                             layout=widgets.Layout(width='100%', margin='10px 0px 0px 0px'))
     
     m_out    = widgets.Output(layout=widgets.Layout(width=width, height=height, 
@@ -71,7 +71,7 @@ class Spectrometer():
     
     # Processing TAB -------------------------------------------------------------------
     p_head1 = widgets.HTML(value="<h4>Image</h4>")
-    p_rot   = widgets.Text(value='', description="Angle:", disabled=False)
+    p_rot   = widgets.Text(value='', description="Angle:", disabled=False, layout=widgets.Layout(width='auto'))
     
     p_head2 = widgets.HTML(value="<h4>Crop area</h4>")
     p_crop  = [None, None, None, None]
@@ -218,7 +218,8 @@ class Spectrometer():
         self.p_status.value = "Creating web pages .."
         self.createHTML()
         self.updateWeblog()
-
+        self.updateLight("#000000")
+        
         self.p_status.value = "Done .."
         self.p_butupd.disabled = False
         self.p_butpro.disabled = False
