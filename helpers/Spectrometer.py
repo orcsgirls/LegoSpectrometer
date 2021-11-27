@@ -12,7 +12,7 @@ import numpy as np
 from picamera import PiCamera
 from PIL import Image, ImageDraw
 from time import sleep, strftime
-from IPython.display import clear_output, HTML, IFrame
+from IPython.display import display, clear_output, HTML, IFrame
 
 from streaming.server import StreamingServer
 from streaming import svg
