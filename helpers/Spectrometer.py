@@ -4,6 +4,7 @@
 
 import io
 import csv
+import time
 import ipywidgets as widgets
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,6 +14,9 @@ from PIL import Image, ImageDraw
 from time import sleep, strftime
 from IPython.display import clear_output, HTML, IFrame
 
+from streaming.server import StreamingServer
+from streaming import svg
+
 #--------------------------------------------------------------------------------------
 # Spectrometer class
 #--------------------------------------------------------------------------------------
@@ -21,16 +25,18 @@ class Spectrometer():
     #----------------------------------------------------------------------------------
     # Making the GUI
     #----------------------------------------------------------------------------------
-    width = '600px'
-    height = '500px'
+    inpWidth = '275px'
+    width    = '770px'
+    height   = '600px'
     
     # Calibration wavelength
     waveL1 = 544.0
     waveL2 = 611.0
     
-    # Weblog
-    localurl = 'http://localhost:8000/'
-    
+    # Links
+    localurl  = 'http://localhost:8000/'
+    streamurl = 'http://localhost:4664/'
+
     # Images
     raw = None
     processed = None
@@ -45,28 +51,33 @@ class Spectrometer():
     # Measurement TAB -----------------------------------------------------------------
     m_head1  = widgets.HTML(value="<h4>Experiment</h4>")
     m_name   = widgets.Text(value='', description='Scientist:', disabled=False, layout=widgets.Layout(width='auto'))
-    m_light  = widgets.Text(value='', placeholder='Light source details', description='Light:', disabled=False)
-    m_sample = widgets.Text(value='None', placeholder='Transmission sample details', description='Sample:', disabled=False)
-    m_notes  = widgets.Textarea(value='', placeholder='Experiment notes', description='Notes:', rows=6, disabled=False)
-    m_time   = widgets.Text(value='', placeholder='Timestamp', description='Timestamp:', disabled=True)
+    m_light  = widgets.Text(value='', placeholder='Light source details', description='Light:', disabled=False, 
+                            layout=widgets.Layout(width='auto'))
+    m_sample = widgets.Text(value='None', placeholder='Transmission sample details', description='Sample:', disabled=False, 
+                            layout=widgets.Layout(width='auto'))
+    m_notes  = widgets.Textarea(value='', placeholder='Experiment notes', description='Notes:', rows=6, disabled=False,
+                                layout=widgets.Layout(width='auto'))
+    m_time   = widgets.Text(value='', placeholder='Timestamp', description='Timestamp:', disabled=True, 
+                            layout=widgets.Layout(width='auto'))
 
     m_head2 = widgets.HTML(value="<h4>Settings</h4>")
-    m_expo   = widgets.FloatSlider(value=1.0, min=0.0, max=6.0, step=0.1, description='Exposure:',
-                                 disabled=False, continuous_update=False, orientation='horizontal', readout=True,
-                                 readout_format='.1f')
+    m_expo   = widgets.BoundedFloatText(description='Exposure', value=0.2, min=0.1, max=5.0, step=0.1, 
+                                        layout=widgets.Layout(width='auto'))
 
-    m_neopix = widgets.ColorPicker(concise=False, description='NeoPixel', value='#000000', disabled=True)
+    m_neopix = widgets.ColorPicker(concise=False, description='NeoPixel', value='#000000', disabled=True, 
+                                   layout=widgets.Layout(width='auto'))
     m_butraw = widgets.Button(button_style='success', description='Measure', disabled=False,
                             layout=widgets.Layout(width='100%', margin='10px 0px 0px 0px'))
+    m_butclose = widgets.Button(button_style='danger', description='Shutdown', disabled=False,
+                            layout=widgets.Layout(width='100%', margin='10px 0px 0px 0px'))
     
-    m_out    = widgets.Output(layout=widgets.Layout(width=width, height=height, 
-                                                    margin='0px 10px 0px 0px', border='solid 1px #ddd'))
+    m_out    = widgets.Output(layout=widgets.Layout(width=width, height=height, border='solid 1px #ddd'))
     m_status = widgets.HTML(value="Ready ..")
     
     m_left   = widgets.VBox([m_head1, m_time, m_name, m_light, m_sample, m_notes, 
-                             m_head2, m_neopix, m_expo, m_butraw, m_status],
+                             m_head2, m_neopix, m_expo, m_butraw, m_butclose, m_status],
                          layout=widgets.Layout(height=height, border='solid 1px #ddd',
-                                               margin='0px 10px 0px 0px'))
+                                               margin='0px 5px 0px 0px', width=inpWidth))
     m_tab    = widgets.HBox([m_left, m_out])
     
     # Processing TAB -------------------------------------------------------------------
@@ -75,35 +86,34 @@ class Spectrometer():
     
     p_head2 = widgets.HTML(value="<h4>Crop area</h4>")
     p_crop  = [None, None, None, None]
-    p_crop[0] = widgets.Text(value='', description="Top left x:", disabled=False)
-    p_crop[1] = widgets.Text(value='', description="Top left y:", disabled=False)
-    p_crop[2] = widgets.Text(value='', description="Btm right x:", disabled=False)
-    p_crop[3] = widgets.Text(value='', description="Btm right y:", disabled=False)
+    p_crop[0] = widgets.Text(value='', description="Top left x:", disabled=False, layout=widgets.Layout(width='auto'))
+    p_crop[1] = widgets.Text(value='', description="Top left y:", disabled=False, layout=widgets.Layout(width='auto'))
+    p_crop[2] = widgets.Text(value='', description="Btm right x:", disabled=False, layout=widgets.Layout(width='auto'))
+    p_crop[3] = widgets.Text(value='', description="Btm right y:", disabled=False, layout=widgets.Layout(width='auto'))
 
     p_head3 = widgets.HTML(value="<h4>Calibration</h4>")
-    p_pix1  = widgets.Text(value='', description="Line 1", disabled=False)
-    p_pix2  = widgets.Text(value='', description="Line 2", disabled=False)
+    p_pix1  = widgets.Text(value='', description="Line 1", disabled=False, layout=widgets.Layout(width='auto'))
+    p_pix2  = widgets.Text(value='', description="Line 2", disabled=False, layout=widgets.Layout(width='auto'))
 
     p_butupd = widgets.Button(button_style='success', description='Update plot', disabled=True,
                             layout=widgets.Layout(width='100%', margin='10px 0px 0px 0px'))
     p_butpro = widgets.Button(button_style='primary', description='Process', disabled=True,
                             layout=widgets.Layout(width='100%', margin='5px 0px 0px 0px'))
     
-    p_out    = widgets.Output(layout=widgets.Layout(width=width, height=height, 
-                                                    margin='0px 10px 0px 0px', border='solid 1px #ddd'))
+    p_out    = widgets.Output(layout=widgets.Layout(width=width, height=height, border='solid 1px #ddd'))
     p_status = widgets.HTML(value="Ready ..")
     
     p_left   = widgets.VBox([p_head1, p_rot, p_head2, p_crop[0], p_crop[1], p_crop[2], p_crop[3],
                            p_head3, p_pix1, p_pix2, p_butupd, p_butpro, p_status],
-                           layout=widgets.Layout(height=height, 
-                                                 border='solid 1px #ddd', margin='0px 10px 0px 0px'))
+                           layout=widgets.Layout(height=height, width=inpWidth,
+                                                 border='solid 1px #ddd', margin='0px 5px 0px 0px'))
     p_tab    = widgets.HBox([p_left, p_out])
 
     # Publishing tab ------------------------------------------------------------------
-    l_log = widgets.Output(layout=widgets.Layout(height='500px'))
+    l_log = widgets.Output()
     l_msg = widgets.HTML(value="<center>Make sure you run <tt>python3 -m http.server</tt> in the <tt>docs</tt> directory.", 
                        layout=widgets.Layout(width='95%'))
-    l_tab = widgets.VBox([l_log, l_msg])
+    l_tab = widgets.VBox([l_log, l_msg], layout=widgets.Layout(height=height))
     
     # Making GUI widget ---------------------------------------------------------------
     gui = widgets.Tab()
@@ -127,20 +137,8 @@ class Spectrometer():
         self.m_time.value = strftime("%Y%m%d-%H%M%S") 
         shutter = int(1000000 * float(self.m_expo.value))
 
-        self.m_status.value = 'Aquiring data for {:.1f} seconds ..'.format(float(self.m_expo.value))
-        self.raw = self.takePicture(shutter)
-        self.m_status.value = "Processing .."
-
-        with self.m_out:
-            fig, ax = plt.subplots()
-            ax.grid(color='yellow', linestyle='dotted', linewidth=1)
-            ax.set_xticks(np.arange(0, self.raw.width, 100.0))
-            ax.imshow(self.raw)
-
-            clear_output(wait=True)
-            display(ax.figure)
-            plt.close()
-            
+        self.m_status.value = 'Capturing image ..'
+        self.raw = self.takePicture()
         self.m_status.value = "Done .."
         self.m_butraw.disabled = False
 
@@ -300,33 +298,12 @@ class Spectrometer():
         return Image.fromarray(np.uint8(adjusted))
 
     #--------------------------------------------------------------------------------------
-    def takePicture(self,shutter):   
-        camera = PiCamera()
+    def takePicture(self):  
         stream = io.BytesIO()
+        self.scamera.camera.capture(stream, format='jpeg')
+        stream.seek(0)
+        raw = Image.open(stream)
 
-        # Needed because maximum exposure is 1/framerate!
-        if (shutter > 200000):
-            framerate = 1000000./shutter
-        else:
-            framerate = 5.
-
-        try:
-            # Full camera resolution is 2592 x 1944 - we run at 1/4 resolution 
-            camera.resolution = (648, 486)        
-            camera.framerate= framerate
-            camera.rotation = 270
-            camera.iso = 800
-            camera.shutter_speed = shutter
-            camera.awb_mode = 'off'
-            camera.awb_gains = (1, 1)
-
-            sleep(1)
-
-            camera.capture(stream, format='jpeg')
-            stream.seek(0)
-            raw = Image.open(stream)
-        finally:
-            camera.close()
         return raw
 
     #----------------------------------------------------------------------------------
@@ -376,14 +353,22 @@ class Spectrometer():
             display(IFrame(self.localurl, width=900, height=self.height))
             
     #----------------------------------------------------------------------------------
+    def updateStream(self):
+        with self.m_out:
+            clear_output(wait=True)
+            display(IFrame(self.streamurl, width=680, height=550))  
+
+    #----------------------------------------------------------------------------------
     def show(self):
         display(self.gui)
+        self.updateStream()
         self.updateWeblog()
         
     #----------------------------------------------------------------------------------
     def __init__(self, lcd, neopixel):
         self.lcd = lcd
         self.neopixel = neopixel
+        self.scamera = StreamingCamera(self.m_expo)
         
         if (neopixel):
             self.m_neopix.disabled = False
@@ -394,8 +379,77 @@ class Spectrometer():
             self.initLCD()
 
         self.m_butraw.on_click(self.runMeasure)
+        self.m_butclose.on_click(self.shutdown)
         self.p_butupd.on_click(self.runProcessUpdate)
         self.p_butpro.on_click(self.runProcess)
+        self.m_expo.observe(self.scamera.updateFramerate)
+        
+    #----------------------------------------------------------------------------------
+    def shutdown(self, b):
+        self.close()
+
+    #----------------------------------------------------------------------------------
+    def close(self):
+        self.scamera.server.close()
+        self.scamera.camera.close()  
+        print('Spectrometer object deleted')
+        clear_output()
+        del self
+        
+#--------------------------------------------------------------------------------------
+# StreamingCamera class
+#--------------------------------------------------------------------------------------
+class StreamingCamera():
+
+    exposure = 0.2
+    raw = None
+
+    #----------------------------------------------------------------------------------
+    def updateFramerate(self, c):
+        new_exposure  = float(self.expo.value)
+        framerate     = 1. / float(self.expo.value)
+
+        if(new_exposure != self.exposure):
+            self.expo.disabled=True
+            self.exposure = new_exposure
+            self.server._stop_recording()
+            self.server._camera.framerate = framerate
+            self.server._camera.shutter_speed = int(1000000 * self.exposure)
+            self.server._start_recording()
+            self.expo.disabled=False
+            self.updateOverlay()
+
+    #----------------------------------------------------------------------------------
+    def updateOverlay(self):
+        text="LEGO Spectrometer - Exposure {:.1f} sec - Framerate {:.2f} fps".format(self.exposure, 1./self.exposure)
+        doc = svg.Svg(width=self.camera.resolution.width, height=self.camera.resolution.height)
+        doc.add(svg.Text(text, x=10, y=25, fill='yellow', font_size=18))
+        self.server.send_overlay(str(doc))
+        
+    #----------------------------------------------------------------------------------
+    def close(self):
+        self.server.close()
+        self.camera.close()  
+        print('StreamingCamera object close')
+    
+    #----------------------------------------------------------------------------------
+    def __init__(self, expo):
+        streaming_bitrate = 1000000
+        mdns_name = ''        
+        
+        self.expo = expo
+        
+        self.camera = PiCamera()
+        self.camera.resolution = (648, 486)        
+        self.camera.framerate= 1. / self.exposure
+        self.camera.rotation = 270
+        self.camera.iso = 800
+        self.camera.shutter_speed = int(1000000 * self.exposure)
+        self.camera.awb_mode = 'off'
+        self.camera.awb_gains = (1, 1)
+
+        self.camera.start_preview()
+        self.server = StreamingServer(self.camera, bitrate=streaming_bitrate,  mdns_name=mdns_name)
 
 #--------------------------------------------------------------------------------------
 # Helpers
