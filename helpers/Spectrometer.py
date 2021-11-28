@@ -100,7 +100,7 @@ class Spectrometer():
     p_butpro = widgets.Button(button_style='primary', description='Process', disabled=True,
                             layout=widgets.Layout(width='100%', margin='5px 0px 0px 0px'))
     
-    p_out    = widgets.Output(layout=widgets.Layout(width=width, height=height, border='solid 1px #ddd'))
+    p_out    = widgets.Output(layout=widgets.Layout(width=width, height=height, border='solid 1px #ddd', margin='0px 5px 0px 0px'))
     p_status = widgets.HTML(value="Ready ..")
     
     p_left   = widgets.VBox([p_head1, p_rot, p_head2, p_crop[0], p_crop[1], p_crop[2], p_crop[3],
@@ -145,6 +145,8 @@ class Spectrometer():
         self.runProcessUpdate(None)
         self.p_butupd.disabled = False
         self.p_butpro.disabled = False
+        
+        self.gui.selected_index = 1
 
     #--------------------------------------------------------------------------------------
     def runProcessUpdate(self,b):
@@ -156,8 +158,8 @@ class Spectrometer():
         if(angle != 0.0):
             self.raw = self.raw.rotate(angle)
 
-        temp = self.raw.copy();
-        draw = ImageDraw.Draw(temp)
+        dummy = self.raw.copy()
+        draw = ImageDraw.Draw(dummy)
         cropvals = [int(v.value) for v in self.p_crop]
         draw.rectangle(cropvals, outline=(255, 255, 0), width=2)
         draw.line((int(self.p_pix1.value), 0, int(self.p_pix1.value), self.raw.height), fill=(  0,255,  0), width=5)
@@ -166,13 +168,14 @@ class Spectrometer():
         with self.p_out:
             fig, ax = plt.subplots()
             ax.grid(color='yellow', linestyle='dotted', linewidth=1)
-            ax.set_xticks(np.arange(0, self.raw.width, 50.0))
-            ax.imshow(temp)
+            ax.set_xticks(np.arange(0, dummy.width, 50.0))
+            ax.set_yticks(np.arange(0, dummy.width, 50.0))
+            ax.imshow(dummy)
 
             clear_output(wait=True)
             display(ax.figure)
             plt.close()
-
+            
         self.p_status.value = "Cropping .."
         cropvals = [int(v.value) for v in self.p_crop]
         self.processed = self.raw.crop(cropvals)
