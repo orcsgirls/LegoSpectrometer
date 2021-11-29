@@ -146,7 +146,7 @@ class Spectrometer():
         
         self.scamera.updateOverlayProcess(self.p_crop, self.p_pix1.value, self.p_pix2.value)
         self.p_butpro.disabled = False
-        self.status.value = "Adjust parameters as needed, then click Process .."
+        self.status.value = "Adjust parameters as needed. When you are happy to proceeed click Process .."
         
     #--------------------------------------------------------------------------------------
     def runProcess(self,b):
